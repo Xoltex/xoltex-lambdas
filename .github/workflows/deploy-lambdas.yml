@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        lambda_dir: [lambda-usuarios, lambda-cupones]  # Agrega aquí tus lambdas
+        lambda_dir: [lambda-usuarios]  # Agrega aquí tus lambdas
 
     steps:
       - name: Checkout code
