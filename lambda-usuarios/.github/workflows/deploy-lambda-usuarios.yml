@@ -5,7 +5,7 @@ on:
     paths:
       - 'lambda-usuarios/**'
     branches:
-      - main
+      - main 
 
 jobs:
   deploy: 
