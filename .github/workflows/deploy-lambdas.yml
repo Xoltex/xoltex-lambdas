@@ -1,52 +1,44 @@
-name: Deploy Lambda Usuarios
+name: Deploy Lambda Automatically
 
 on:
   push:
+    paths:
+      - '*/**'
     branches:
       - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lambda_dir: [lambda-template]  # Agrega más nombres aquí cuando tengas más lambdas
 
-    defaults:
-      run:
-        working-directory: lambda-usuarios
+    if: contains(github.event.head_commit.message, matrix.lambda_dir)
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Detect changes in lambda-usuarios
-        id: detect_changes
-        run: |
-          echo "🕵️‍♂️ Verificando cambios en lambda-usuarios/"
-          CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^lambda-usuarios/' || true)
-          echo "CHANGED=$CHANGED"
-          echo "changed_files=$CHANGED" >> $GITHUB_OUTPUT
-
       - name: Set up Python
-        if: steps.detect_changes.outputs.changed_files != ''
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
-        if: steps.detect_changes.outputs.changed_files != ''
-        run: pip install -r requirements.txt -t .
-
-      - name: Zip Lambda
-        if: steps.detect_changes.outputs.changed_files != ''
-        run: zip -r lambda-usuarios.zip . -x ".env" "__pycache__/*" ".git/*"
+      - name: Install and package Lambda
+        working-directory: ${{ matrix.lambda_dir }}
+        run: |
+          mkdir -p package
+          pip install -r requirements.txt -t package
+          cp *.py package/
+          cd package && zip -r ../${{ matrix.lambda_dir }}.zip .
 
       - name: Deploy to AWS Lambda
-        if: steps.detect_changes.outputs.changed_files != ''
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ matrix.lambda_dir }} \
+            --zip-file fileb://${{ matrix.lambda_dir }}.zip \
+            --region us-east-1
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-1
-        run: |
-          echo "🚀 Desplegando lambda-usuarios a AWS"
-          aws lambda update-function-code \
-            --function-name lambda-usuarios \
-            --zip-file fileb://lambda-usuarios.zip
