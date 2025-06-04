@@ -1,4 +1,4 @@
-name: Deploy Lambda Automatically
+name: Deploy Multiple Lambdas Automatically
 
 on:
   push:
@@ -12,9 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        lambda_dir: [lambda-template]  # Agrega más nombres aquí cuando tengas más lambdas
-
-    if: contains(github.event.head_commit.message, matrix.lambda_dir)
+        lambda_dir: [lambda-usuarios, lambda-cupones]  # Agrega aquí tus lambdas
 
     steps:
       - name: Checkout code
@@ -24,6 +22,10 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+
+      - name: Skip if commit message does not match this lambda
+        if: contains(github.event.head_commit.message, matrix.lambda_dir) == false
+        run: echo "❌ Commit message doesn't include ${matrix.lambda_dir}, skipping..." && exit 0
 
       - name: Install and package Lambda
         working-directory: ${{ matrix.lambda_dir }}
