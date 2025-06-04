@@ -2,8 +2,6 @@ name: Deploy Lambda Usuarios
 
 on:
   push:
-    paths:
-      - 'lambda-usuarios/**'
     branches:
       - main 
 
