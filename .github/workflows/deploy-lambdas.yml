@@ -25,12 +25,6 @@ jobs:
           echo "CHANGED=$CHANGED"
           echo "changed_files=$CHANGED" >> $GITHUB_OUTPUT
 
-      - name: Abort if no changes in lambda-usuarios
-        if: steps.detect_changes.outputs.changed_files == ''
-        run: |
-          echo "❌ No se detectaron cambios en lambda-usuarios. Cancelando despliegue."
-          exit 0
-
       - name: Set up Python
         if: steps.detect_changes.outputs.changed_files != ''
         uses: actions/setup-python@v4
