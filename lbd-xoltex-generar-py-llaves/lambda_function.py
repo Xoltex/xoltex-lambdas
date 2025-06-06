@@ -3,23 +3,19 @@ import uuid
 import time
 import base64
 from datetime import datetime, timedelta, timezone
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives.ciphers import algorithms
 from jose import jwt
+from jose.utils import base64url_decode
+from jose import jwk
+from Crypto.PublicKey import RSA
+from Crypto.Random import get_random_bytes
 import urllib.request
 
 COGNITO_ISSUER = "https://us-east-1nff2mkaaw.auth.us-east-1.amazoncognito.com"
 COGNITO_JWKS_URL = f"{COGNITO_ISSUER}/.well-known/jwks.json"
 EXPECTED_AUDIENCE = "1nm9inu0p0boclg1ocn35ijpnq"
 
-def validate_jwt(token):
-    from jose.utils import base64url_decode
-    from jose import jwk
-    import json
 
+def validate_jwt(token):
     # Obtener llaves públicas de Cognito
     with urllib.request.urlopen(COGNITO_JWKS_URL) as res:
         jwks = json.loads(res.read())
@@ -38,7 +34,13 @@ def validate_jwt(token):
     if not public_key.verify(message.encode("utf-8"), decoded_sig):
         raise Exception("Firma no válida")
 
-    claims = jwt.decode(token, public_key.to_pem().decode(), algorithms=["RS256"], audience=EXPECTED_AUDIENCE, issuer=COGNITO_ISSUER)
+    claims = jwt.decode(
+        token,
+        public_key.to_pem().decode(),
+        algorithms=["RS256"],
+        audience=EXPECTED_AUDIENCE,
+        issuer=COGNITO_ISSUER
+    )
     return claims
 
 
@@ -55,23 +57,15 @@ def lambda_handler(event, context):
         }
 
     # Generar RSA
-    rsa_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    private_key = rsa_key.private_bytes(
-        serialization.Encoding.PEM,
-        serialization.PrivateFormat.TraditionalOpenSSL,
-        serialization.NoEncryption()
-    ).decode("utf-8")
+    rsa_key = RSA.generate(2048)
+    private_key = rsa_key.export_key().decode("utf-8")
+    public_key = rsa_key.publickey().export_key().decode("utf-8")
 
-    public_key = rsa_key.public_key().public_bytes(
-        serialization.Encoding.PEM,
-        serialization.PublicFormat.SubjectPublicKeyInfo
-    ).decode("utf-8")
-
-    # Generar AES (clave aleatoria de 256 bits)
-    aes_key = algorithms.AES.generate_key(bit_length=256)
+    # Generar AES (256 bits = 32 bytes)
+    aes_key = get_random_bytes(32)
     aes_b64 = base64.b64encode(aes_key).decode("utf-8")
 
-    # UUID único
+    # UUID único y tiempo de expiración
     id_acceso = str(uuid.uuid4())
     expires_at = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
 
@@ -81,7 +75,7 @@ def lambda_handler(event, context):
             "publicKey": public_key,
             "privateKey": private_key
         },
-        "aes": { 
+        "aes": {
             "key": aes_b64,
             "algorithm": "AES-256"
         },

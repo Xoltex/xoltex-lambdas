@@ -1,2 +1,2 @@
-cryptography
-python-jose[cryptography]
+pycryptodome
+python-jose
