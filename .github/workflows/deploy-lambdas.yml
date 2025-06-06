@@ -12,17 +12,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        lambda_dir: [lambda-usuarios, lambda-generador-claves]
+        lambda_dir: [lambda-usuarios, lbd-xoltex-generar-py-llaves]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Verificar estructura del repo
+      - name: Verificar carpetas disponibles
         run: |
-          pwd
+          echo "📂 Contenido de la raíz del repo:"
           ls -la
-          ls -la ./xoltex-lambdas
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v4
@@ -30,7 +29,7 @@ jobs:
           python-version: '3.11'
 
       - name: Instalar dependencias y empaquetar Lambda
-        working-directory: ./xoltex-lambdas/${{ matrix.lambda_dir }}
+        working-directory: ${{ matrix.lambda_dir }}
         run: |
           set -x
           mkdir -p ../package
@@ -41,13 +40,13 @@ jobs:
 
       - name: Verificar ZIP generado
         run: |
-          ls -lh ./xoltex-lambdas/${{ matrix.lambda_dir }}.zip || (echo "❌ ZIP no encontrado" && exit 1)
+          ls -lh ${{ matrix.lambda_dir }}.zip || (echo "❌ ZIP no encontrado" && exit 1)
 
       - name: Deploy Lambda a AWS
         run: |
           aws lambda update-function-code \
             --function-name ${{ matrix.lambda_dir }} \
-            --zip-file fileb://xoltex-lambdas/${{ matrix.lambda_dir }}.zip \
+            --zip-file fileb://${{ matrix.lambda_dir }}.zip \
             --region us-east-1
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
