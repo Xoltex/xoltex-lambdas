@@ -23,10 +23,6 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Skip if commit message does not match this lambda
-        if: contains(github.event.head_commit.message, matrix.lambda_dir) == false
-        run: echo "❌ Commit message doesn't include ${matrix.lambda_dir}, skipping..." && exit 0
-
       - name: Install and package Lambda
         working-directory: ${{ matrix.lambda_dir }}
         run: |
