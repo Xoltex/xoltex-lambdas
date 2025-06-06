@@ -11,7 +11,7 @@ from Crypto.Random import get_random_bytes
 import urllib.request
 
 COGNITO_ISSUER = "https://us-east-1nff2mkaaw.auth.us-east-1.amazoncognito.com"
-COGNITO_JWKS_URL = f"{COGNITO_ISSUER}/.well-known/jwks.json"
+COGNITO_JWKS_URL = "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_nFf2mkAAw/.well-known/jwks.json"
 EXPECTED_AUDIENCE = "1nm9inu0p0boclg1ocn35ijpnq"
 
 
