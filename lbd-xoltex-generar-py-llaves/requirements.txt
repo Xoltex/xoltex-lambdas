@@ -1,2 +1,6 @@
 pycryptodome
 python-jose
+requests
+python-dotenv
+fastapi
+uvicorn

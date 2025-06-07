@@ -9,8 +9,10 @@ from jose import jwk
 from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
 import urllib.request
+import hashlib
 
-COGNITO_ISSUER = "https://us-east-1nff2mkaaw.auth.us-east-1.amazoncognito.com"
+
+COGNITO_ISSUER = "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_nFf2mkAAw"
 COGNITO_JWKS_URL = "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_nFf2mkAAw/.well-known/jwks.json"
 EXPECTED_AUDIENCE = "1nm9inu0p0boclg1ocn35ijpnq"
 
@@ -22,21 +24,15 @@ def validate_jwt(token):
 
     headers = jwt.get_unverified_header(token)
     kid = headers["kid"]
-
     key = next((k for k in jwks["keys"] if k["kid"] == kid), None)
     if key is None:
         raise Exception("No se encontró la llave pública")
-
     public_key = jwk.construct(key)
     message, encoded_sig = str(token).rsplit(".", 1)
     decoded_sig = base64url_decode(encoded_sig.encode("utf-8"))
-
-    if not public_key.verify(message.encode("utf-8"), decoded_sig):
-        raise Exception("Firma no válida")
-
     claims = jwt.decode(
         token,
-        public_key.to_pem().decode(),
+        public_key.to_pem().decode(), # Volver a la versión original de .to_pem().decode()
         algorithms=["RS256"],
         audience=EXPECTED_AUDIENCE,
         issuer=COGNITO_ISSUER
@@ -45,7 +41,7 @@ def validate_jwt(token):
 
 
 def lambda_handler(event, context):
-    auth_header = event["headers"].get("authorization", "")
+    auth_header = event["headers"].get("Authorization", "")
     token = auth_header.replace("Bearer ", "").strip()
 
     try:
@@ -62,13 +58,17 @@ def lambda_handler(event, context):
     public_key = rsa_key.publickey().export_key().decode("utf-8")
 
     # Generar AES (256 bits = 32 bytes)
-    aes_key = get_random_bytes(32)
-    aes_b64 = base64.b64encode(aes_key).decode("utf-8")
+    aes_key_bytes = get_random_bytes(32)
+    aes_b64 = base64.b64encode(aes_key_bytes).decode("utf-8")
 
-    # UUID único y tiempo de expiración
+    # Generar el hash de la clave AES
+    aes_hash = hashlib.sha256(aes_key_bytes).digest()
+    aes_hash_b64 = base64.b64encode(aes_hash).decode("utf-8")
+
+
+    # UUID único y timpo de expiración
     id_acceso = str(uuid.uuid4())
     expires_at = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
-
     response = {
         "idAcceso": id_acceso,
         "rsa": {
@@ -76,12 +76,11 @@ def lambda_handler(event, context):
             "privateKey": private_key
         },
         "aes": {
-            "key": aes_b64,
-            "algorithm": "AES-256"
+            "accesoSimetrico": aes_b64,     
+            "codigoHash": aes_hash_b64     
         },
         "expiresAt": expires_at
     }
-
     return {
         "statusCode": 200,
         "body": json.dumps(response)
