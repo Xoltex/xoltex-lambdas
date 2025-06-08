@@ -8,7 +8,7 @@ import json
 
 app = FastAPI()
 
-@app.post("/llaves")
+@app.get("/llaves")
 async def test_lambda(request: Request):
     try:
         body = await request.json()
@@ -36,6 +36,32 @@ async def test_lambda(request: Request):
         content=json_load_safe(result.get("body"))
     )
 
+@app.get("/llaves/{llaves}")
+async def test_lambda(request: Request, llaves: str):  # 👈 capturamos `llaves` aquí
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}  # GET no suele tener body, así que lo dejamos vacío
+
+    # Captura headers y normalízalos
+    headers = {k.title(): v for k, v in request.headers.items()}
+
+    # Evento simulado como si fuera de API Gateway
+    event = {
+        "headers": headers,
+        "pathParameters": {
+            "llaves": llaves  # 👈 aquí pasamos el parámetro a la Lambda
+        },
+        "body": json.dumps(body)  # por si acaso espera un string JSON
+    }
+
+    context = {}  # Contexto falso
+    result = lambda_handler(event, context)
+
+    return JSONResponse(
+        status_code=result.get("statusCode", 200),
+        content=json_load_safe(result.get("body"))
+    )
 
 def json_load_safe(body_str):
     try:

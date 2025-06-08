@@ -10,6 +10,12 @@ from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
 import urllib.request
 import hashlib
+import boto3
+from decimal import Decimal
+
+
+dynamodb = boto3.resource("dynamodb")
+table = dynamodb.Table("CTLlavesAcceso")
 
 
 COGNITO_ISSUER = "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_nFf2mkAAw"
@@ -41,6 +47,26 @@ def validate_jwt(token):
 
 
 def lambda_handler(event, context):
+    path_params = event.get("pathParameters", {})
+    llaves_id = path_params.get("llaves")  # Esto extrae el valor del parámetro /llaves/{llaves}
+
+    if llaves_id:
+        print("🔎 Buscando llaves con idAcceso:", llaves_id)
+        # Aquí haces la búsqueda en DynamoDB
+        item = table.get_item(Key={"idAcceso": llaves_id}).get("Item")
+
+        if item:
+            return {
+                "statusCode": 200,
+                "body": json.dumps(item, cls=DecimalEncoder)
+            }
+        else:
+            return {
+                "statusCode": 404,
+                "body": json.dumps({"error": "Llave no encontrada"})
+            }
+        
+
     auth_header = event["headers"].get("Authorization", "")
     token = auth_header.replace("Bearer ", "").strip()
 
@@ -81,7 +107,27 @@ def lambda_handler(event, context):
         },
         "expiresAt": expires_at
     }
+   #guaredemos las llaves una una tabla dynamo
+    expires_at_unix = int((datetime.now(timezone.utc) + timedelta(hours=1)).timestamp())
+
+    table.put_item(Item={
+        "idAcceso": id_acceso,
+        "rsaPublicKey": public_key,
+        "rsaPrivateKey": private_key,
+        "aesKey": aes_b64,
+        "aesHash": aes_hash_b64,
+        "expiresAt": expires_at_unix 
+    })
+
     return {
         "statusCode": 200,
         "body": json.dumps(response)
     }
+
+
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, Decimal):
+            # Si quieres todos como float
+            return float(o)
+        return super(DecimalEncoder, self).default(o)
