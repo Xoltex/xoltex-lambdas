@@ -1,6 +1,7 @@
 pycryptodome
 python-jose
 requests
+pydantic
 python-dotenv
 fastapi
 uvicorn

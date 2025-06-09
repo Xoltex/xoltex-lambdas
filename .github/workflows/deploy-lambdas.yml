@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        lambda_dir: [lambda-usuarios, lbd-xoltex-generar-py-llaves]
+        lambda_dir: [lbd-xoltex-generar-py-llaves]
 
     steps:
       - name: Checkout code

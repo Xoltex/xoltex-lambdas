@@ -17,51 +17,35 @@ async def test_lambda(request: Request):
             status_code=400,
             content={"error": "El cuerpo de la solicitud debe ser JSON válido"}
         )
-
-    # Captura todos los headers y los normaliza a formato API Gateway
     headers = {k.title(): v for k, v in request.headers.items()}
-
-
-    # Construye el evento simulado como si viniera de API Gateway
     event = {
         "headers": headers,
-        "body": body  # Nota: si usas API Gateway con integración Lambda, puede que venga como string
+        "body": body  
     }
-
-    context = {}  # Contexto simulado
+    context = {}  
     result = lambda_handler(event, context)
-
-    return JSONResponse(
-        status_code=result.get("statusCode", 200),
-        content=json_load_safe(result.get("body"))
-    )
-
+    return result
+    
 @app.get("/llaves/{llaves}")
-async def test_lambda(request: Request, llaves: str):  # 👈 capturamos `llaves` aquí
+async def test_lambda(request: Request, llaves: str):
     try:
         body = await request.json()
     except Exception:
-        body = {}  # GET no suele tener body, así que lo dejamos vacío
-
+        body = {}  
     # Captura headers y normalízalos
     headers = {k.title(): v for k, v in request.headers.items()}
-
     # Evento simulado como si fuera de API Gateway
     event = {
         "headers": headers,
         "pathParameters": {
-            "llaves": llaves  # 👈 aquí pasamos el parámetro a la Lambda
+            "llaves": llaves  
         },
-        "body": json.dumps(body)  # por si acaso espera un string JSON
+        "body": json.dumps(body)  
     }
-
-    context = {}  # Contexto falso
+    context = {} 
     result = lambda_handler(event, context)
 
-    return JSONResponse(
-        status_code=result.get("statusCode", 200),
-        content=json_load_safe(result.get("body"))
-    )
+    return result
 
 def json_load_safe(body_str):
     try:
