@@ -28,18 +28,17 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Instalar dependencias y empaquetar Lambda con Docker (Amazon Linux)
+      - name: Instalar dependencias y empaquetar Lambda con Amazon Linux 2023
         working-directory: ${{ matrix.lambda_dir }}
         run: |
-          docker run --rm -v "$PWD":/var/task lambci/lambda:build-python3.11 \
-            /bin/bash -c "\
+          docker run --rm -v $PWD:/var/task public.ecr.aws/lambda/python:3.11 \
+            /bin/sh -c "\
               mkdir -p package && \
-              pip install -r requirements.txt -t package && \
+              pip3 install -r requirements.txt -t package && \
               cp -r *.py esquema excepciones funciones respuestas servicios utilidades package && \
               cd package && \
               zip -r ../${{ matrix.lambda_dir }}.zip . \
             "
-
 
       - name: Verificar ZIP generado
         run: |

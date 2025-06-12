@@ -16,7 +16,7 @@ def lambda_handler(event, context):
         #headers = HeadersSchema(**event.get("headers", {}))
         # path_params = PathParamsSchema(**event.get("pathParameters", {}))
         # body = BodySchema(**json.loads(event.get("body", "{}")))
- 
+  
     except ValidationError as e:
         print(e.errors()) 
         raise AppError(404, "Parametros no validos")
