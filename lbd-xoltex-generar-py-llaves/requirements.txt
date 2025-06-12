@@ -1,8 +1,8 @@
-pycryptodome
+pycryptodome==3.19.1
 python-jose
 requests
-pydantic
+pydantic==1.10.14
 python-dotenv
 fastapi
-uvicorn
+uvicorn[standard]
 boto3
