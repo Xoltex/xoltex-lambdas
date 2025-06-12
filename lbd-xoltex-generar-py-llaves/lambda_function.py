@@ -18,7 +18,7 @@ def lambda_handler(event, context):
         # body = BodySchema(**json.loads(event.get("body", "{}")))
   
     except ValidationError as e:
-        print(e.errors()) 
+        print(e.errors())  
         raise AppError(404, "Parametros no validos")
         
    
