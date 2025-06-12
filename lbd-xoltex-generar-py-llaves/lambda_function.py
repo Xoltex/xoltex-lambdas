@@ -1,7 +1,6 @@
 from excepciones.errores import manejar_errores
 from utilidades.folio_context import generar_nuevo_folio
 from respuestas.AppResponse import AppResponse
-from fastapi.responses import JSONResponse
 from funciones.index import funcion
 from pydantic import ValidationError
 from esquema.validarRequest import HeadersSchema,PathParamsSchema,BodySchema
@@ -24,5 +23,5 @@ def lambda_handler(event, context):
     
     path_params = event.get("pathParameters") or {}
     response= funcion.crearLLaves(path_params,event)
-    return JSONResponse(content=AppResponse.ok(response), status_code=200)
+    return AppResponse.ok(response)
  
