@@ -23,5 +23,6 @@ def lambda_handler(event, context):
     
     path_params = event.get("pathParameters") or {}
     response= funcion.crearLLaves(path_params,event)
-    return AppResponse.ok(response)
+    return AppResponse.lambda_response(response)
+
  

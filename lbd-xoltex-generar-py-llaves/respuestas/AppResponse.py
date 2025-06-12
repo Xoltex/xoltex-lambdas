@@ -1,6 +1,6 @@
 from utilidades.folio_context import obtener_folio
 from typing import Any, Dict, Optional, Union, List
-
+import json
 
 class AppResponse:
     """
@@ -39,3 +39,20 @@ class AppResponse:
         if extra:
             respuesta["extra"] = extra
         return respuesta
+
+    @staticmethod
+    def lambda_response(
+        resultado: Union[Dict, List],
+        mensaje: str = "Operación exitosa",
+        status: int = 200,
+        extra: Optional[dict] = None
+    ) -> Dict:
+        """
+        Respuesta compatible con AWS Lambda
+        """
+        body = AppResponse._crear_respuesta(status, resultado, mensaje, extra)
+        return {
+            "statusCode": status,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps(body)
+        }
