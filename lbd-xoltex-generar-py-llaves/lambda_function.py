@@ -12,13 +12,13 @@ from excepciones.errores import AppError
 def lambda_handler(event, context):
     generar_nuevo_folio()
     try:
-        
-        headers = HeadersSchema(**event.get("headers", {}))
+        pass
+        #headers = HeadersSchema(**event.get("headers", {}))
         # path_params = PathParamsSchema(**event.get("pathParameters", {}))
         # body = BodySchema(**json.loads(event.get("body", "{}")))
 
     except ValidationError as e:
-        print(e.errors())
+        print(e.errors()) 
         raise AppError(404, "Parametros no validos")
         
   

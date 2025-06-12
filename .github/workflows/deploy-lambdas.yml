@@ -34,7 +34,7 @@ jobs:
           set -x
           mkdir -p ../package
           pip install --upgrade --no-cache-dir -r requirements.txt -t ../package
-          cp *.py ../package/
+          cp -r . ../package/
           cd ../package
           zip -r ../${{ matrix.lambda_dir }}.zip .
 
