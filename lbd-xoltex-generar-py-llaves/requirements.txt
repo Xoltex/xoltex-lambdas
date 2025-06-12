@@ -1,7 +1,7 @@
 pycryptodome==3.19.1
 python-jose
 requests
-pydantic==1.10.14
+pydantic[dotenv]==2.5.3
 python-dotenv
 fastapi
 uvicorn[standard]

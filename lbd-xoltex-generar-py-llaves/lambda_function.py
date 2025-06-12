@@ -20,7 +20,7 @@ def lambda_handler(event, context):
     except ValidationError as e:
         print(e.errors())  
         raise AppError(404, "Parametros no validos")
-        
+         
     
     path_params = event.get("pathParameters", {}) 
     response= funcion.crearLLaves(path_params,event)
