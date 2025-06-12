@@ -25,4 +25,4 @@ def lambda_handler(event, context):
     path_params = event.get("pathParameters") or {}
     response= funcion.crearLLaves(path_params,event)
     return JSONResponse(content=AppResponse.ok(response), status_code=200)
-
+ 
