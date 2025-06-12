@@ -21,7 +21,7 @@ def lambda_handler(event, context):
         print(e.errors())  
         raise AppError(404, "Parametros no validos")
         
-   
+    
     path_params = event.get("pathParameters", {})
     response= funcion.crearLLaves(path_params,event)
     return JSONResponse(content=AppResponse.ok(response), status_code=200)
